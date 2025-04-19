@@ -6,37 +6,52 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.lang.Thread;
+
+import sixth.sem.database.Database;
 
 /**
  * Dict
  */
 public class Dict {
-    // private final int port;
-    private String temp;
-    private boolean loop = true;
+    public static boolean loop = true;
+    private final Database database;
 
-    private ServerSocket socket;
-    private Socket client;
+    private ServerSocket serverSocket;
 
-    private BufferedReader reader;
-    private PrintWriter writer;
+    public Dict(int port, String dbaddress, String username, String password, String table) {
+        System.out.println("""
+                #########################
+                #   Dictionary Server   #
+                #########################
+                by: Rahul Gurung & Rohan Chaudhary
+                """);
 
-    public Dict(int port) {
+        database = new Database(dbaddress, username, password, table);
+
+        System.out.println("Dictionary Server Running on Port:" + port);
+        System.out.println("Now Listening...");
+
         try {
-            socket = new ServerSocket(port);
+            serverSocket = new ServerSocket(port);
+
             while (loop) {
-                client = socket.accept();
-                handleSocket();
+                Socket sock = serverSocket.accept();
+                // new Thread(() -> {
+                Thread.ofVirtual().start(() -> {
+                    try {
+                        handleSocket(sock);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
             }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
-                if (socket != null)
-                    socket.close();
-                if (client != null)
-                    client.close();
-
+                if (serverSocket != null)
+                    serverSocket.close();
                 System.exit(0);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -44,28 +59,62 @@ public class Dict {
         }
     }
 
-    private void handleSocket() throws IOException {
+    private void handleSocket(Socket sock) throws IOException {
+        Socket client = sock;
+        BufferedReader reader;
+        PrintWriter writer;
+        String temp;
+        Again loop = new Again(true);
+
         reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
         writer = new PrintWriter(client.getOutputStream(), true);
 
+        writer.println("""
+                #########################
+                #   Dictionary Server   #
+                #########################
+                by: Rahul Gurung & Rohan Chaudhary
+                    """);
+        writer.flush();
+
+        System.out.println(client.getInetAddress() + " accepted as client");
+
         while ((temp = reader.readLine()) != null) {
             temp = temp.trim();
-            if (temp.equalsIgnoreCase("quit")) {
-                loop = false;
-                writer.write("221 Closing Connection");
-                writer.flush();
-                break;
-            } else if (temp.isEmpty()) {
+            if (temp.isEmpty()) {
                 continue;
-            } else {
-                writer.println(CmdHandler.handle(temp));
-                // writer.write(CmdHandler.handle(temp) + "\n");
-                writer.flush();
+            }
+            writer.println(CmdHandler.handle(temp, database, loop));
+            writer.flush();
+
+            if (loop.loop == false) {
+                System.out.println("for " + client.getInetAddress() + " Again.loop is " + loop.loop);
+                break;
             }
         }
         if (reader != null)
             reader.close();
         if (writer != null)
             writer.close();
+        if (client != null)
+            client.close();
+        System.out.println(client.getInetAddress() + " has been closed");
+
+        try {
+            Thread.currentThread().join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+/**
+ * InnerDict
+ */
+class Again {
+    public boolean loop;
+
+    Again(boolean l) {
+        loop = l;
     }
 }
