@@ -10,6 +10,9 @@ public class CmdHandler {
     private static Database database;
     private static String[] strArgs;
 
+    private CmdHandler() {
+    }
+
     public static String handle(String cmd, Database db, Again loop) {
         database = db;
         strArgs = cmd.toLowerCase().split(" ");
@@ -17,9 +20,9 @@ public class CmdHandler {
         return switch (strArgs[0]) {
             case "help" -> help.apply();
             case "quit" -> quit(loop);
-            case "define" -> database.define(strArgs);
-            case "add" -> database.add(strArgs);
-            case "remove" -> database.remove(strArgs);
+            case "define" -> define.apply();
+            case "add" -> add.apply();
+            case "remove" -> remove.apply();
 
             default -> "Wrong Cmd String , Use HELP cmd for more info";
         };
@@ -29,16 +32,6 @@ public class CmdHandler {
         if (strArgs.length != 1) {
             return "Only Help";
         }
-        // return """
-        // Usuage:
-        // define word or
-        // define word word word ....
-        // - to define the word
-        //
-        // ADD word define
-        // - to add a word to the database
-        // """;
-
         return """
                 Usuage:
                 +--------------------------------------------+
@@ -50,7 +43,7 @@ public class CmdHandler {
                 +---------|---------------|------------------+
                 + DEFINE  |    word       | defines the word +
                 +---------|---------------|------------------+
-                + QUIT    |               |  closes server   +
+                + QUIT    |               |  Close Connction +
                 +--------------------------------------------+
                 """;
     };
@@ -65,23 +58,26 @@ public class CmdHandler {
         return "221 Closing Connection";
     }
 
-    // private static Fn quit = () -> {
-    // if (strArgs.length != 1) {
-    // return "Only Quit";
-    // }
-    // // database.stop();
-    // // Dict.loop = false;
-    //
-    // return "221 Closing Connection";
-    // };
+    private static Fn define = () -> {
+        if (strArgs.length == 1) {
+            return "Not Enough Args";
+        }
+        return database.define(strArgs);
+    };
 
-    // private static Fn define = () -> {
-    // return database.define(strArgs);
-    // };
-    //
-    // private static Fn add = () -> {
-    // return database.add(strArgs);
-    // };
+    private static Fn add = () -> {
+        if (strArgs.length == 1) {
+            return "Not Enough Args";
+        }
+        return database.add(strArgs);
+    };
+
+    private static Fn remove = () -> {
+        if (strArgs.length == 1) {
+            return "Not Enough Args";
+        }
+        return database.remove(strArgs);
+    };
 
 }
 

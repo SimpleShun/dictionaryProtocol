@@ -1,5 +1,5 @@
 # Cmds to implement
-- [ ] DEFINE database word
+- [x] DEFINE database word
 - [ ] MATCH database stragety word
 - [ ] SHOW db | SHOW databases
 - [ ] SHOW strat | SHOW starageties
@@ -17,7 +17,7 @@
 - GRANT ALL PRIVILEGES ON dictionary.* to "dict"@localhost;
 
 +------+-------------------------------------+
-|WORD  +          Definition                 +
+|word  +          value                      +
 +------+-------------------------------------+
 |home  + your House                          +
 +------+-------------------------------------+

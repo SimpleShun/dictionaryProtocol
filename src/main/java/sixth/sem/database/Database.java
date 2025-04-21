@@ -5,6 +5,9 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.logging.Level;
+
+import sixth.sem.dictionary.Dict;
 
 /**
  * Database
@@ -17,17 +20,19 @@ public final class Database {
     public Database(String databaseAddr, String username, String password, String tablename) {
         name_of_table = tablename;
         try {
-            if ((connection = DriverManager.getConnection(databaseAddr, username, password)) != null) {
-                System.out.println("Connected to Database Successfully");
+            connection = DriverManager.getConnection(databaseAddr, username, password);
+            if (connection != null) {
+                Dict.logger.info("Connected Successfully to Database on " + databaseAddr);
+                Dict.logger.info("using TABLE " + tablename + " as USER: " + username);
             } else {
-                System.err.println("Failed to create Database Connection");
-                System.err.println("Aborting....");
+                Dict.logger.log(Level.SEVERE, "Connection is Null Object");
+                Dict.logger.info("Aborting....");
                 System.exit(-1);
             }
 
         } catch (SQLException e) {
-            System.err.println("Failed to create Database Connection");
-            e.printStackTrace();
+            Dict.logger.log(Level.SEVERE, "Failed to create Database Connection " + e.getMessage(), e);
+            Dict.logger.info("Aborting....");
             System.exit(-1);
         }
     }
@@ -37,7 +42,7 @@ public final class Database {
             if (connection != null)
                 connection.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            Dict.logger.log(Level.WARNING, "failed to close connection" + e.getMessage(), e);
         }
     }
 
@@ -59,13 +64,13 @@ public final class Database {
             }
         } catch (SQLException e) {
             temp = "Failed to perform the action";
-            e.printStackTrace();
+            Dict.logger.log(Level.WARNING, "couldn't perform action " + e.getMessage(), e);
         } finally {
             try {
                 if (statement != null)
                     statement.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                Dict.logger.log(Level.WARNING, "Statement couldn't be closed" + e.getMessage(), e);
             }
         }
         return temp;
@@ -87,13 +92,13 @@ public final class Database {
 
         } catch (SQLException e) {
             temp = "Failed to peform action";
-            e.printStackTrace();
+            Dict.logger.log(Level.WARNING, "couldn't perform " + word[0] + " " + word[1] + " " + e.getMessage(), e);
         } finally {
             try {
                 if (statement != null)
                     statement.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                Dict.logger.log(Level.WARNING, "Statement couldn't be closed" + e.getMessage(), e);
             }
         }
         return temp;
@@ -114,13 +119,13 @@ public final class Database {
 
         } catch (SQLException e) {
             temp = "Failed to peform action";
-            e.printStackTrace();
+            Dict.logger.log(Level.WARNING, "couldn't perform " + word[0] + " " + word[1] + " " + e.getMessage(), e);
         } finally {
             try {
                 if (statement != null)
                     statement.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                Dict.logger.log(Level.WARNING, "Statement couldn't be closed" + e.getMessage(), e);
             }
         }
         return temp;
