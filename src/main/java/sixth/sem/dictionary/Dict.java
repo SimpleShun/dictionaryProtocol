@@ -18,11 +18,10 @@ import sixth.sem.database.Database;
  */
 public class Dict {
 
-    public static boolean loop = true;
     private static Database database = null;
+    public static boolean loop = true;
     public static final Logger logger = Logger.getLogger(Dict.class.getCanonicalName());
 
-    // Number of Execution Context in the system
     public static final int threadpool_size = Runtime.getRuntime().availableProcessors() * 2;
     private static ExecutorService executorService = Executors.newFixedThreadPool(threadpool_size);
 
@@ -83,6 +82,7 @@ public class Dict {
     }
 
     private void handleSocket(Socket sock) throws IOException {
+        Auth auth = new Auth();
         Socket client = sock;
         BufferedReader reader;
         PrintWriter writer;
@@ -107,7 +107,7 @@ public class Dict {
             if (temp.isEmpty()) {
                 continue;
             }
-            writer.println(CmdHandler.handle(temp, database, loop));
+            writer.println(CmdHandler.handle(temp, database, loop, auth));
             writer.flush();
 
             if (loop.loop == false) {
@@ -134,5 +134,17 @@ class Again {
 
     Again(boolean l) {
         loop = l;
+    }
+}
+
+class Auth {
+    private boolean auth = false;
+
+    public boolean getAuth() {
+        return auth;
+    }
+
+    public void setAuth(boolean auth) {
+        this.auth = auth;
     }
 }

@@ -50,4 +50,12 @@ public class App {
         App.name_of_table = name_of_table;
     }
 
+    public static String getUsername() {
+        return username;
+    }
+
+    public static String getPassword() {
+        return password;
+    }
+
 }

@@ -29,7 +29,7 @@ public class Client {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
 			PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-			new Thread(() -> {
+			Thread.ofVirtual().start(() -> {
 				String temp;
 				try {
 					while ((temp = reader.readLine()) != null) {
@@ -37,8 +37,9 @@ public class Client {
 					}
 				} catch (IOException e) {
 					System.err.println("Connection closed");
+					System.exit(-1);
 				}
-			}).start();
+			});
 
 			String input;
 			while (true) {
@@ -51,6 +52,7 @@ public class Client {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+			System.exit(-1);
 		}
 
 	}

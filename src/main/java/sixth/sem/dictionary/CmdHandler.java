@@ -1,5 +1,7 @@
 package sixth.sem.dictionary;
 
+import sixth.sem.App;
+import sixth.sem.Response;
 import sixth.sem.database.Database;
 
 /**
@@ -9,12 +11,14 @@ public class CmdHandler {
 
     private static Database database;
     private static String[] strArgs;
+    private static Auth authc;
 
     private CmdHandler() {
     }
 
-    public static String handle(String cmd, Database db, Again loop) {
+    public static String handle(String cmd, Database db, Again loop, Auth auth) {
         database = db;
+        authc = auth;
         strArgs = cmd.toLowerCase().split(" ");
 
         return switch (strArgs[0]) {
@@ -26,6 +30,7 @@ public class CmdHandler {
             case "remove" -> remove.apply();
             case "abort" -> abort.apply();
             case "show" -> show.apply();
+            case "auth" -> auth(strArgs, auth).data;
 
             default -> "Wrong Cmd String , Use HELP cmd for more info";
         };
@@ -55,12 +60,12 @@ public class CmdHandler {
         return "221 Closing Connection";
     }
 
-    private static Fn<String> define = () -> {
-        if (strArgs.length == 1) {
-            return "Not Enough Args";
-        }
-        return database.define(strArgs).data;
-    };
+    // private static Fn<String> define = () -> {
+    // if (strArgs.length == 0) {
+    // return "Not Enough Args";
+    // }
+    // return database.define(strArgs).data;
+    // };
 
     private static Fn<String> define2 = () -> {
         if (strArgs.length == 1) {
@@ -73,6 +78,9 @@ public class CmdHandler {
         if (strArgs.length == 1) {
             return "Not Enough Args";
         }
+        if (!authc.getAuth()) {
+            return "Not Authenticated";
+        }
         return database.add(strArgs).data;
     };
 
@@ -80,12 +88,18 @@ public class CmdHandler {
         if (strArgs.length == 1) {
             return "Not Enough Args";
         }
+        if (!authc.getAuth()) {
+            return "Not Authenticated";
+        }
         return database.remove(strArgs).data;
     };
 
     private static Fn<String> abort = () -> {
         if (strArgs.length != 1) {
             return "Only Abort";
+        }
+        if (!authc.getAuth()) {
+            return "Not Authenticated";
         }
         Dict.terminate();
         return "Done";
@@ -100,6 +114,22 @@ public class CmdHandler {
         else
             return "Wrong Command";
     };
+
+    private static Response auth(String[] args, Auth auth) {
+        Response response = new Response();
+        if (args.length != 3) {
+            response.data = "wrong statement";
+            return response;
+        }
+        if (args[1].equals(App.getUsername()) && args[2].equals(App.getPassword())) {
+            response.data = "Authenticated";
+            auth.setAuth(true);
+            return response;
+        } else {
+            response.data = "Not Authenticated";
+            return response;
+        }
+    }
 }
 
 /**
@@ -108,14 +138,3 @@ public class CmdHandler {
 interface Fn<t> {
     public t apply();
 }
-// - [ ] DEFINE database word [ DEFINE WORD ]
-// - [ ] MATCH database stragety word
-// - [ ] SHOW db | SHOW databases
-// - [ ] SHOW strat | SHOW starageties
-// - [ ] SHOW INFO database
-// - [ ] SHOW server
-// - [ ] CLIENT text
-// - [ ] STATUS
-// - [ ] HELP
-// - [x] QUIT
-// - [ ] OPTION mime

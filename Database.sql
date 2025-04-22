@@ -18,10 +18,9 @@ insert into dictionary values("intelligence"," intelligence
      1. The act or state of knowing; the exercise of the understanding.\n
      2. The capacity to know or understand; readiness of comprehension; the intellect, as a gift or an endowment.\n
      3. Information communicated; news; notice; advice.\n
-     4. Knowledge imparted or acquired, whether by study, research, or experience; general information. Specifically; (Mil.) Information about an enemy or potential enemy, his capacities, and intentions.\n
-");
+     4. Knowledge imparted or acquired, whether by study, research, or experience; general information. Specifically; (Mil.) Information about an enemy or potential enemy, his capacities, and intentions.\n ");
 
-use french;
+USE french;
 create table dictionary(
 	word varchar(20) primary key,
 	value varchar(1024) not null
