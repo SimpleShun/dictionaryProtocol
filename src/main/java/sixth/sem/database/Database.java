@@ -42,7 +42,7 @@ public final class Database {
     }
 
     public Response showDb(String[] word) {
-        String temp = "";
+        String temp = "The available database are the following:\n";
         Response response = new Response();
 
         try {
@@ -51,14 +51,19 @@ public final class Database {
             while (resultSet.next()) {
                 if (resultSet.getString(1).equals("information_schema"))
                     continue;
-                temp = temp.concat(resultSet.getString(1) + "\n");
+                // temp = temp.concat(resultSet.getString(1) + "\n");
+                if (resultSet.getString(1).equals("dictionary")) {
+                    temp = temp.concat("en");
+                } else if (resultSet.getString(1).equals("french")) {
+                    temp = temp.concat("fr");
+                }
             }
         } catch (SQLException e) {
             temp = "Failed to perform the action";
             Dict.logger.log(Level.WARNING, "couldn't perform action " + e.getMessage(), e);
         }
         response.responseCode = 200;
-        response.data = temp;
+        response.data = temp + "\n";
         return response;
     }
 
@@ -91,26 +96,32 @@ public final class Database {
             }
         }
         response.responseCode = 200;
-        response.data = temp;
+        response.data = temp + "\n";
         return response;
     }
 
     // add {WORD} {DEFINATION}
-    public String add(String[] word) {
-        String temp = "";
+    public Response add(String[] word) {
+        Response response = new Response();
         try {
+            if (evaluateShortcut(word[1]).equals("no")) {
+                response.data = "No Such Database \n Hint: Show db";
+                return response;
+
+            }
+            connection.createStatement().execute("use " + evaluateShortcut(word[1]));
             statement = connection.prepareStatement("INSERT INTO " + name_of_table + " VALUES(? , ?)");
-            statement.setString(1, word[1]);
+            statement.setString(1, word[2]);
             statement.setString(2, rest(word));
 
             if (statement.executeUpdate() == 1) {
-                temp = word[1] + " was Successfully added";
+                response.data = word[1] + " was Successfully added";
             } else {
-                temp = "Failed to add " + word[1];
+                response.data = "Failed to add " + word[1];
             }
 
         } catch (SQLException e) {
-            temp = "Failed to peform action";
+            response.data = "Failed to peform action";
             Dict.logger.log(Level.WARNING, "couldn't perform " + word[0] + " " + word[1] + " " + e.getMessage(), e);
         } finally {
             try {
@@ -120,25 +131,31 @@ public final class Database {
                 Dict.logger.log(Level.WARNING, "Statement couldn't be closed" + e.getMessage(), e);
             }
         }
-        return temp;
+        response.data = response.data + "\n";
+        return response;
     }
 
     // REMOVE word
-    public String remove(String[] word) {
-        String temp = "";
+    public Response remove(String[] word) {
+        Response response = new Response();
         try {
+            if (evaluateShortcut(word[1]).equals("no")) {
+                response.data = "No Such Database \n Hint: Show db";
+                return response;
+            }
+            connection.createStatement().execute("use " + evaluateShortcut(word[1]));
             statement = connection.prepareStatement("DELETE FROM " + name_of_table + " WHERE word=?");
-            statement.setString(1, word[1]);
+            statement.setString(1, word[2]);
 
             if (statement.executeUpdate() == 1) {
-                temp = word[1] + " was Successfully removed";
+                response.data = word[2] + " was Successfully removed";
             } else {
-                temp = "Failed to remove" + word[1];
+                response.data = "Failed to remove" + word[2];
             }
 
         } catch (SQLException e) {
-            temp = "Failed to peform action";
-            Dict.logger.log(Level.WARNING, "couldn't perform " + word[0] + " " + word[1] + " " + e.getMessage(), e);
+            response.data = "Failed to peform action";
+            Dict.logger.log(Level.WARNING, "couldn't perform " + word[0] + " " + e.getMessage(), e);
         } finally {
             try {
                 if (statement != null)
@@ -147,14 +164,62 @@ public final class Database {
                 Dict.logger.log(Level.WARNING, "Statement couldn't be closed" + e.getMessage(), e);
             }
         }
-        return temp;
+        response.data = response.data + "\n";
+        return response;
+    }
+
+    public Response define2(String[] word) {
+        String temp = "";
+        Response response = new Response();
+        try {
+            // statement.execute("use " + word[1]);
+            if (evaluateShortcut(word[1]).equals("no")) {
+                response.data = "No Such Database \n Hint: Show db";
+                return response;
+
+            }
+            connection.createStatement().execute("use " + evaluateShortcut(word[1]));
+            statement = connection.prepareStatement("SELECT * FROM " + name_of_table + " WHERE word= ?");
+            for (int i = 2; i < word.length; i++) {
+                statement.setString(1, word[i]);
+                ResultSet result = statement.executeQuery();
+                int loops_to_help_know_if_resultset_is_empty = 0;
+                while (result.next()) {
+                    ++loops_to_help_know_if_resultset_is_empty;
+                    temp = temp.concat(word[i] + " -> " + result.getString("value") + "\n");
+                }
+                if (loops_to_help_know_if_resultset_is_empty == 0) {
+                    temp = temp.concat(word[i] + "-> " + "not in the Database\n");
+                }
+            }
+        } catch (SQLException e) {
+            temp = "Failed to perform the action";
+            Dict.logger.log(Level.WARNING, "couldn't perform action " + e.getMessage(), e);
+        } finally {
+            try {
+                if (statement != null)
+                    statement.close();
+            } catch (SQLException e) {
+                Dict.logger.log(Level.WARNING, "Statement couldn't be closed" + e.getMessage(), e);
+            }
+        }
+        response.responseCode = 200;
+        response.data = temp + "\n";
+        return response;
     }
 
     private String rest(String[] word) {
         String temp = "";
-        for (int i = 2; i < word.length; i++) {
+        for (int i = 3; i < word.length; i++) {
             temp = temp.concat(" " + word[i]);
         }
         return temp;
+    }
+
+    private String evaluateShortcut(String arg) {
+        return switch (arg.trim()) {
+            case "en" -> "dictionary";
+            default -> "no";
+        };
     }
 }

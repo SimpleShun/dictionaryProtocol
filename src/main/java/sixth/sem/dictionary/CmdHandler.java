@@ -20,7 +20,8 @@ public class CmdHandler {
         return switch (strArgs[0]) {
             case "help" -> help.apply();
             case "quit" -> quit(loop);
-            case "define" -> define.apply();
+            // case "define" -> define.apply();
+            case "define" -> define2.apply();
             case "add" -> add.apply();
             case "remove" -> remove.apply();
             case "abort" -> abort.apply();
@@ -30,23 +31,17 @@ public class CmdHandler {
         };
     }
 
-    private static Fn help = () -> {
+    private static Fn<String> help = () -> {
         if (strArgs.length != 1) {
             return "Only Help";
         }
         return """
                 Usuage:
-                +--------------------------------------------+
-                + Commands| args          |      remarks     +
-                +---------|---------------|------------------+
-                + ADD     | word [word..] | Adds to db       +
-                +---------|---------------|------------------+
-                + REMOVE  |    word       | removes from db  +
-                +---------|---------------|------------------+
-                + DEFINE  |    word       | defines the word +
-                +---------|---------------|------------------+
-                + QUIT    |               |  Close Connction +
-                +--------------------------------------------+
+                    add {dictionary} {word}
+                    remove {database} {word}
+                    show db || show database
+                    help
+                    quit
                 """;
     };
 
@@ -60,28 +55,35 @@ public class CmdHandler {
         return "221 Closing Connection";
     }
 
-    private static Fn define = () -> {
+    private static Fn<String> define = () -> {
         if (strArgs.length == 1) {
             return "Not Enough Args";
         }
         return database.define(strArgs).data;
     };
 
-    private static Fn add = () -> {
+    private static Fn<String> define2 = () -> {
         if (strArgs.length == 1) {
             return "Not Enough Args";
         }
-        return database.add(strArgs);
+        return database.define2(strArgs).data;
     };
 
-    private static Fn remove = () -> {
+    private static Fn<String> add = () -> {
         if (strArgs.length == 1) {
             return "Not Enough Args";
         }
-        return database.remove(strArgs);
+        return database.add(strArgs).data;
     };
 
-    private static Fn abort = () -> {
+    private static Fn<String> remove = () -> {
+        if (strArgs.length == 1) {
+            return "Not Enough Args";
+        }
+        return database.remove(strArgs).data;
+    };
+
+    private static Fn<String> abort = () -> {
         if (strArgs.length != 1) {
             return "Only Abort";
         }
@@ -89,7 +91,7 @@ public class CmdHandler {
         return "Done";
     };
 
-    private static Fn show = () -> {
+    private static Fn<String> show = () -> {
         if (strArgs.length == 1) {
             return "Wrong Command";
         }
@@ -98,14 +100,13 @@ public class CmdHandler {
         else
             return "Wrong Command";
     };
-
 }
 
 /**
  * InnerCmdHandler
  */
-interface Fn {
-    public String apply();
+interface Fn<t> {
+    public t apply();
 }
 // - [ ] DEFINE database word [ DEFINE WORD ]
 // - [ ] MATCH database stragety word
