@@ -1,0 +1,57 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.Scanner;
+
+/**
+ * Client
+ */
+public class Client {
+	private Socket socket;
+
+	public static void main(String[] args) {
+		if (args.length != 2)
+			System.exit(-1);
+		try {
+			new Client(args[0], Integer.parseInt(args[1]));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	Client(String add, int port) {
+		try {
+			socket = new Socket(add, port);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
+			PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+			new Thread(() -> {
+				String temp;
+				try {
+					while ((temp = reader.readLine()) != null) {
+						System.out.println(temp);
+					}
+				} catch (IOException e) {
+					System.err.println("Connection closed");
+				}
+			}).start();
+
+			String input;
+			while (true) {
+				input = inputReader.readLine().trim();
+				if (input.equals("exit")) {
+					writer.println("quit");
+					System.exit(0);
+				}
+				writer.println(input);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+}

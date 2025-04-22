@@ -16,10 +16,8 @@
 - CREATE USER "dict"@localhost IDENTIFIED BY "123";
 - GRANT ALL PRIVILEGES ON dictionary.* to "dict"@localhost;
 
-+------+-------------------------------------+
-|word  +          value                      +
-+------+-------------------------------------+
-|home  + your House                          +
-+------+-------------------------------------+
-|      |                                     |
-+------+-------------------------------------+
+
+# Database
+|  word |   value                 |
+|:-----:|:-----------------------:|
+|House  | the place where you live|

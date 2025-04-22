@@ -23,6 +23,8 @@ public class CmdHandler {
             case "define" -> define.apply();
             case "add" -> add.apply();
             case "remove" -> remove.apply();
+            case "abort" -> abort.apply();
+            case "show" -> show.apply();
 
             default -> "Wrong Cmd String , Use HELP cmd for more info";
         };
@@ -62,7 +64,7 @@ public class CmdHandler {
         if (strArgs.length == 1) {
             return "Not Enough Args";
         }
-        return database.define(strArgs);
+        return database.define(strArgs).data;
     };
 
     private static Fn add = () -> {
@@ -77,6 +79,24 @@ public class CmdHandler {
             return "Not Enough Args";
         }
         return database.remove(strArgs);
+    };
+
+    private static Fn abort = () -> {
+        if (strArgs.length != 1) {
+            return "Only Abort";
+        }
+        Dict.terminate();
+        return "Done";
+    };
+
+    private static Fn show = () -> {
+        if (strArgs.length == 1) {
+            return "Wrong Command";
+        }
+        if (strArgs[1].equals("db") || strArgs[1].equals("databases"))
+            return database.showDb(strArgs).data;
+        else
+            return "Wrong Command";
     };
 
 }

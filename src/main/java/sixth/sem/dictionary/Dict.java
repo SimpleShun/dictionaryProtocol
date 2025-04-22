@@ -19,17 +19,18 @@ import sixth.sem.database.Database;
 public class Dict {
 
     public static boolean loop = true;
-    private final Database database;
+    private static Database database = null;
     public static final Logger logger = Logger.getLogger(Dict.class.getCanonicalName());
 
     // Number of Execution Context in the system
     public static final int threadpool_size = Runtime.getRuntime().availableProcessors() * 2;
     private static ExecutorService executorService = Executors.newFixedThreadPool(threadpool_size);
 
-    private ServerSocket serverSocket;
+    private static ServerSocket serverSocket;
 
     public Dict(int port, String dbaddress, String username, String password, String table) {
         logger.info("""
+                \n
                 #########################
                 #   Dictionary Server   #
                 #########################
@@ -63,20 +64,21 @@ public class Dict {
                 // });
             }
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed at ServerSocket Creation" + e.getMessage(), e);
+            logger.log(Level.SEVERE, "Failed at ServerSocket Creation " + e.getMessage(), e);
             System.exit(-1);
-        } finally {
-            try {
-                if (serverSocket != null) {
-                    serverSocket.close();
-                }
-                database.stop();
-                logger.info("Exited Successfully");
+        }
+    }
 
-                System.exit(0);
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, "Failed at Close ServerSocket" + e.getMessage(), e);
+    public static void terminate() {
+        try {
+            if (serverSocket != null) {
+                serverSocket.close();
             }
+            database.stop();
+            logger.info("Exited Successfully");
+            System.exit(0);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed at Terminate" + e.getMessage(), e);
         }
     }
 
@@ -117,9 +119,10 @@ public class Dict {
             reader.close();
         if (writer != null)
             writer.close();
-        if (client != null)
+        if (client != null) {
             client.close();
-        logger.info(client.getInetAddress() + " has been closed");
+            logger.info(client.getInetAddress() + " has been closed");
+        }
     }
 }
 

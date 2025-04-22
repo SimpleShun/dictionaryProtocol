@@ -87,32 +87,32 @@ public class ReadConfig {
             Dict.logger.log(Level.SEVERE, "Aborting");
             System.exit(-1);
         }
-        switch (args[0]) {
+        switch (args[0].trim()) {
             case "databaseAddr":
-                App.setDatabaseAddr(args[1]);
+                App.setDatabaseAddr(args[1].trim());
                 break;
             case "username":
-                App.setUsername(args[1]);
+                App.setUsername(args[1].trim());
                 break;
             case "password":
-                App.setPassword(args[1]);
+                App.setPassword(args[1].trim());
                 break;
             case "name_of_table":
-                App.setName_of_table(args[1]);
+                App.setName_of_table(args[1].trim());
                 break;
             case "port":
                 int port = -1;
                 try {
-                    port = Integer.parseInt(args[1]);
+                    port = Integer.parseInt(args[1].trim());
                 } catch (NumberFormatException e) {
-                    Dict.logger.log(Level.SEVERE, args[0] + " must be a valid port number");
+                    Dict.logger.log(Level.SEVERE, args[0].trim() + " must be a valid port number");
                     Dict.logger.log(Level.SEVERE, "Aborting");
                     System.exit(-1);
                 }
                 App.setPort(port);
                 break;
             default:
-                Dict.logger.log(Level.SEVERE, args[0] + " is not valid field");
+                Dict.logger.log(Level.SEVERE, args[0].trim() + " is not valid field");
                 Dict.logger.log(Level.SEVERE, "Aborting");
                 System.exit(-1);
         }

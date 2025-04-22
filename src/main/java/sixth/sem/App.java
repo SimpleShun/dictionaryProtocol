@@ -9,11 +9,11 @@ import sixth.sem.fileHandler.ReadConfig;
  * Hello world!
  */
 public class App {
-    private static int port; // = 2628;
-    private static String databaseAddr; // = "jdbc:mariadb://localhost:3306/dictionary";
-    private static String username; // = "dict";
-    private static String password; // = "123";
-    private static String name_of_table; // = "dictionary";
+    private static int port;
+    private static String databaseAddr;
+    private static String username;
+    private static String password;
+    private static String name_of_table;
 
     public static void main(String[] args) {
         ReadConfig.canPopulate();

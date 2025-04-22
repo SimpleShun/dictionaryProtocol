@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 
 import sixth.sem.dictionary.Dict;
+import sixth.sem.Response;
 
 /**
  * Database
@@ -21,15 +22,8 @@ public final class Database {
         name_of_table = tablename;
         try {
             connection = DriverManager.getConnection(databaseAddr, username, password);
-            if (connection != null) {
-                Dict.logger.info("Connected Successfully to Database on " + databaseAddr);
-                Dict.logger.info("using TABLE " + tablename + " as USER: " + username);
-            } else {
-                Dict.logger.log(Level.SEVERE, "Connection is Null Object");
-                Dict.logger.info("Aborting....");
-                System.exit(-1);
-            }
-
+            Dict.logger.info("Connected Successfully to Database on " + databaseAddr);
+            Dict.logger.info("using TABLE " + tablename + " as USER: " + username);
         } catch (SQLException e) {
             Dict.logger.log(Level.SEVERE, "Failed to create Database Connection " + e.getMessage(), e);
             Dict.logger.info("Aborting....");
@@ -41,13 +35,36 @@ public final class Database {
         try {
             if (connection != null)
                 connection.close();
+            Dict.logger.info("Database Connection Closed");
         } catch (SQLException e) {
             Dict.logger.log(Level.WARNING, "failed to close connection" + e.getMessage(), e);
         }
     }
 
-    public String define(String[] word) {
+    public Response showDb(String[] word) {
         String temp = "";
+        Response response = new Response();
+
+        try {
+            statement = connection.prepareStatement("SHOW DATABASES");
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                if (resultSet.getString(1).equals("information_schema"))
+                    continue;
+                temp = temp.concat(resultSet.getString(1) + "\n");
+            }
+        } catch (SQLException e) {
+            temp = "Failed to perform the action";
+            Dict.logger.log(Level.WARNING, "couldn't perform action " + e.getMessage(), e);
+        }
+        response.responseCode = 200;
+        response.data = temp;
+        return response;
+    }
+
+    public Response define(String[] word) {
+        String temp = "";
+        Response response = new Response();
         try {
             statement = connection.prepareStatement("SELECT * FROM " + name_of_table + " WHERE word= ?");
             for (int i = 1; i < word.length; i++) {
@@ -73,7 +90,9 @@ public final class Database {
                 Dict.logger.log(Level.WARNING, "Statement couldn't be closed" + e.getMessage(), e);
             }
         }
-        return temp;
+        response.responseCode = 200;
+        response.data = temp;
+        return response;
     }
 
     // add {WORD} {DEFINATION}
