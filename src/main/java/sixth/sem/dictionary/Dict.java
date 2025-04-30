@@ -3,6 +3,8 @@ package sixth.sem.dictionary;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -22,8 +24,9 @@ public class Dict {
     public static boolean loop = true;
     public static final Logger logger = Logger.getLogger(Dict.class.getCanonicalName());
 
-    public static final int threadpool_size = Runtime.getRuntime().availableProcessors() * 2;
-    private static ExecutorService executorService = Executors.newFixedThreadPool(threadpool_size);
+    // public static final int threadpool_size =
+    // Runtime.getRuntime().availableProcessors() * 2;
+    private static ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
     private static ServerSocket serverSocket;
 
@@ -47,20 +50,13 @@ public class Dict {
 
             while (loop) {
                 Socket sock = serverSocket.accept();
-                executorService.execute(() -> {
+                executorService.submit(() -> {
                     try {
                         handleSocket(sock);
                     } catch (IOException e) {
                         logger.log(Level.SEVERE, "Couldn't handle Socket " + e.getMessage(), e);
                     }
                 });
-                // Thread.ofVirtual().start(() -> {
-                // try {
-                // handleSocket(sock);
-                // } catch (IOException e) {
-                // e.printStackTrace();
-                // }
-                // });
             }
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed at ServerSocket Creation " + e.getMessage(), e);
@@ -91,6 +87,9 @@ public class Dict {
 
         reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
         writer = new PrintWriter(client.getOutputStream(), true);
+
+        var oreader = new ObjectInputStream(client.getInputStream());
+        var owriter = new ObjectOutputStream(client.getOutputStream());
 
         writer.println("""
                 #########################

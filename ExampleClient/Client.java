@@ -43,7 +43,11 @@ public class Client {
 
 			String input;
 			while (true) {
-				input = inputReader.readLine().trim();
+				String temp;
+				if ((temp = inputReader.readLine()) == null) {
+					continue;
+				}
+				input = temp.trim();
 				if (input.equals("exit")) {
 					writer.println("quit");
 					System.exit(0);
