@@ -7,12 +7,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
-/**
- * Client
- */
 public class Client {
-	private Socket socket;
-
 	public static void main(String[] args) {
 		if (args.length != 2)
 			System.exit(-1);
@@ -23,12 +18,12 @@ public class Client {
 		}
 	}
 
-	Client(String add, int port) {
-		try {
-			socket = new Socket(add, port);
-			BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
-			PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+	private Client(final String add, final int port) {
+		try (
+				var socket = new Socket(add, port);
+				var reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				var writer = new PrintWriter(socket.getOutputStream(), true);
+				var inputReader = new BufferedReader(new InputStreamReader(System.in));) {
 			Thread.ofVirtual().start(() -> {
 				String temp;
 				try {
@@ -58,6 +53,5 @@ public class Client {
 			e.printStackTrace();
 			System.exit(-1);
 		}
-
 	}
 }

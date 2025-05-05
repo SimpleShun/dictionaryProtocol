@@ -1,7 +1,7 @@
 package sixth.sem.fileHandler;
 
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.Collections;
@@ -27,42 +27,40 @@ public final class ReadConfigV2 {
             password=123
             name_of_table=dictionary
             port=2628
-                   """;
+            """;
 
     private ReadConfigV2() {
     }
 
     public static Map<String, String> setup() {
-        Map<String, String> map = new HashMap<>();
         final var configPath = FileSystems.getDefault().getPath("dictionary.conf");
 
         if (!Files.exists(configPath)) {
-            Dict.logger.info("dictionary.conf doesn't exists, Creating default config file");
-            try {
-                Files.createFile(configPath);
-                try (var fileWriter = new FileWriter(configPath.toFile(), true)) {
-                    fileWriter.write(default_value);
-                    Dict.logger.info("dictionary.conf created with default values");
-                }
+            Dict.logger.info("dictionary.conf doesn't exists, Creating default config");
+            try (var writer = Files.newBufferedWriter(configPath, StandardCharsets.UTF_8);) {
+                writer.write(default_value);
             } catch (IOException e) {
                 Dict.logger.log(Level.SEVERE, "Operation Failed " + e.getMessage(), e);
                 System.exit(-1);
             }
         }
-        try (var file_data = Files.newBufferedReader(configPath)) {
-            map = file_data.lines().parallel()
-                    .filter(Predicate.not(Help.filter))
-                    .map((s) -> s.toLowerCase())
+
+        try (var file_reader = Files.newBufferedReader(configPath, StandardCharsets.UTF_8)) {
+            return file_reader.lines()
+                    .parallel()
+                    .filter(Help.filter)
+                    .map(String::toLowerCase)
                     .collect(Collector.of(
                             HashMap::new,
                             Help.accumulator,
                             Help.combiner,
                             (m) -> Collections.unmodifiableMap(m)));
-        } catch (Exception e) {
+
+        } catch (IOException e) {
             Dict.logger.log(Level.SEVERE, "Operation Failed " + e.getMessage(), e);
             System.exit(-1);
+            return new HashMap<>();
         }
-        return map;
     }
 }
 
@@ -80,6 +78,6 @@ final class Help {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     };
     static Predicate<String> filter = (s) -> {
-        return s.isEmpty() ? true : s.charAt(0) == '#';
+        return s.isEmpty() ? false : s.charAt(0) != '#';
     };
 }

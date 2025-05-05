@@ -12,16 +12,13 @@ import java.util.logging.Level;
 import sixth.sem.App;
 import sixth.sem.dictionary.Dict;
 
-/**
- * ReadConfig
- */
 public class ReadConfig {
     // private ReadConfig readConfig = new ReadConfig();
-    private static FileWriter fileWriter;
-    private static Path configPath;
-    private static Scanner fileScanner;
+    // private static FileWriter fileWriter;
+    // private static Path configPath;
+    // private static Scanner fileScanner;
 
-    private static String defautlValues = """
+    private static final String defautlValues = """
             databaseAddr=jdbc:mariadb://localhost:3306/dictionary
             username=dict
             password=123
@@ -32,32 +29,30 @@ public class ReadConfig {
     private ReadConfig() {
     }
 
-    public static void canPopulate() {
-        configPath = FileSystems.getDefault().getPath("dictionary.conf");
+    public static final void canPopulate() {
+        final var configPath = FileSystems.getDefault().getPath("dictionary.conf");
 
         if (!Files.exists(configPath)) {
             Dict.logger.info("dictionary.conf doesn't exists, Creating default config file");
             try {
                 Files.createFile(configPath);
-                fileWriter = new FileWriter(configPath.toFile());
-                fileWriter.write(defautlValues);
-                fileWriter.flush();
-                Dict.logger.info("dictionary.conf created with default values");
-                if (fileWriter != null) {
-                    fileWriter.close();
+                try (var fileWriter = new FileWriter(configPath.toFile(), true)) {
+                    fileWriter.write(defautlValues);
+                    // fileWriter.flush();
+                    Dict.logger.info("dictionary.conf created with default values");
                 }
+                // if (fileWriter != null) {
+                // fileWriter.close();
+                // }
             } catch (IOException e) {
                 Dict.logger.log(Level.SEVERE, "Operation Failed " + e.getMessage(), e);
             }
         }
-        setValues();
-
+        setValues(configPath);
     }
 
-    private static void setValues() {
-        try {
-            fileScanner = new Scanner(configPath.toFile());
-
+    private static void setValues(final Path configPath) {
+        try (var fileScanner = new Scanner(configPath.toFile())) {
             String temp;
             while (fileScanner.hasNextLine()) {
                 temp = fileScanner.nextLine();
@@ -76,9 +71,9 @@ public class ReadConfig {
             Dict.logger.log(Level.SEVERE, "Aborting");
             System.exit(-1);
         }
-        if (fileScanner != null) {
-            fileScanner.close();
-        }
+        // if (fileScanner != null) {
+        // fileScanner.close();
+        // }
     }
 
     private static void performAction(String[] args) {
@@ -118,5 +113,4 @@ public class ReadConfig {
         }
         ;
     }
-
 }

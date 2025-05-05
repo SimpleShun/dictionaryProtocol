@@ -3,8 +3,6 @@ package sixth.sem.dictionary;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -15,9 +13,6 @@ import java.util.logging.Logger;
 
 import sixth.sem.database.Database;
 
-/**
- * Dict
- */
 public class Dict {
 
     private static Database database = null;
@@ -26,8 +21,9 @@ public class Dict {
 
     // public static final int threadpool_size =
     // Runtime.getRuntime().availableProcessors() * 2;
+    /// private static ExecutorService executorService =
+    // Executors.newVirtualThreadPerTaskExecutor();
     private static ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
-
     private static ServerSocket serverSocket;
 
     public Dict(int port, String dbaddress, String username, String password, String table) {
@@ -87,9 +83,6 @@ public class Dict {
 
         reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
         writer = new PrintWriter(client.getOutputStream(), true);
-
-        var oreader = new ObjectInputStream(client.getInputStream());
-        var owriter = new ObjectOutputStream(client.getOutputStream());
 
         writer.println("""
                 #########################

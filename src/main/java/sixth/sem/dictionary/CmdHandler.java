@@ -3,7 +3,6 @@ package sixth.sem.dictionary;
 import sixth.sem.App;
 import sixth.sem.Response;
 import sixth.sem.database.Database;
-import sixth.sem.dictionary.Dict;
 
 /**
  * CmdHandler
@@ -17,7 +16,7 @@ public class CmdHandler {
     private CmdHandler() {
     }
 
-    public static Response handle(String cmd, Database db, Again loop, Auth auth) {
+    public static String handle(String cmd, Database db, Again loop, Auth auth) {
         database = db;
         authc = auth;
         strArgs = cmd.toLowerCase().split(" ");
@@ -25,21 +24,23 @@ public class CmdHandler {
         return switch (strArgs[0]) {
             case "help" -> help.apply();
             case "quit" -> quit(loop);
+            // case "define" -> define.apply();
             case "define" -> define2.apply();
             case "add" -> add.apply();
             case "remove" -> remove.apply();
             case "abort" -> abort.apply();
             case "show" -> show.apply();
-            case "auth" -> auth(strArgs, auth);
-            default -> new Response("Wrong Cmd String , Use HELP cmd for more info", 200);
+            case "auth" -> auth(strArgs, auth).data;
+
+            default -> "Wrong Cmd String , Use HELP cmd for more info";
         };
     }
 
-    private static Fn<Response> help = () -> {
+    private static Fn<String> help = () -> {
         if (strArgs.length != 1) {
-            return new Response("Only Help", 400);
+            return "Only Help";
         }
-        var Str = """
+        return """
                 Usuage:
                     add {dictionary} {word}
                     remove {database} {word}
@@ -47,15 +48,16 @@ public class CmdHandler {
                     help
                     quit
                 """;
-        return new Response(Str, 200);
     };
 
-    private static Response quit(Again l) {
+    private static String quit(Again l) {
         if (strArgs.length != 1) {
-            return new Response("Only Quit", 200);
+            return "Only Quit";
         }
+        // database.stop();
+        // Dict.loop = false;
         l.loop = false;
-        return new Response("221 Closing Connection", 200);
+        return "221 Closing Connection";
     }
 
     // private static Fn<String> define = () -> {
@@ -65,52 +67,52 @@ public class CmdHandler {
     // return database.define(strArgs).data;
     // };
 
-    private static Fn<Response> define2 = () -> {
+    private static Fn<String> define2 = () -> {
         if (strArgs.length == 1) {
-            return new Response("Not Enough Args", 200);
+            return "Not Enough Args";
         }
-        return database.define2(strArgs);
+        return database.define2(strArgs).data;
     };
 
-    private static Fn<Response> add = () -> {
+    private static Fn<String> add = () -> {
         if (strArgs.length == 1) {
-            return new Response("Not Enough Args", 200);
+            return "Not Enough Args";
         }
         if (!authc.getAuth()) {
-            return new Response("Not Authenticated", 200);
+            return "Not Authenticated";
         }
-        return database.add(strArgs);
+        return database.add(strArgs).data;
     };
 
-    private static Fn<Response> remove = () -> {
+    private static Fn<String> remove = () -> {
         if (strArgs.length == 1) {
-            return new Response("Not Enough Args", 200);
+            return "Not Enough Args";
         }
         if (!authc.getAuth()) {
-            return new Response("Not Authenticated", 200);
+            return "Not Authenticated";
         }
-        return database.remove(strArgs);
+        return database.remove(strArgs).data;
     };
 
-    private static Fn<Response> abort = () -> {
+    private static Fn<String> abort = () -> {
         if (strArgs.length != 1) {
-            return new Response("Only Abort", 200);
+            return "Only Abort";
         }
         if (!authc.getAuth()) {
-            return new Response("Not Authenticated", 200);
+            return "Not Authenticated";
         }
         Dict.terminate();
-        return new Response("Done", 200);
+        return "Done";
     };
 
-    private static Fn<Response> show = () -> {
+    private static Fn<String> show = () -> {
         if (strArgs.length == 1) {
-            return new Response("Wrong Command", 200);
+            return "Wrong Command";
         }
         if (strArgs[1].equals("db") || strArgs[1].equals("databases"))
-            return database.showDb(strArgs);
+            return database.showDb(strArgs).data;
         else
-            return new Response("Wrong Command", 200);
+            return "Wrong Command";
     };
 
     private static Response auth(String[] args, Auth auth) {
