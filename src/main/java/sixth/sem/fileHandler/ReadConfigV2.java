@@ -78,6 +78,10 @@ final class Help {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     };
     static Predicate<String> filter = (s) -> {
-        return s.isEmpty() ? false : s.charAt(0) != '#';
+        return s.isEmpty()
+                ? false
+                : s.charAt(0) == '#'
+                        ? false
+                        : s.contains("=");
     };
 }

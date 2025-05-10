@@ -4,34 +4,27 @@ import sixth.sem.App;
 import sixth.sem.Response;
 import sixth.sem.database.Database;
 
-/**
- * CmdHandler
- */
 public class CmdHandler {
-
-    private static Database database;
     private static String[] strArgs;
+    private static Database database;
     private static Auth authc;
 
     private CmdHandler() {
     }
 
-    public static String handle(String cmd, Database db, Again loop, Auth auth) {
-        database = db;
+    public static String handle(final String cmd, final Database db, final Again loop, final Auth auth) {
         authc = auth;
+        database = db;
         strArgs = cmd.toLowerCase().split(" ");
-
         return switch (strArgs[0]) {
             case "help" -> help.apply();
             case "quit" -> quit(loop);
-            // case "define" -> define.apply();
             case "define" -> define2.apply();
             case "add" -> add.apply();
             case "remove" -> remove.apply();
             case "abort" -> abort.apply();
             case "show" -> show.apply();
             case "auth" -> auth(strArgs, auth).data;
-
             default -> "Wrong Cmd String , Use HELP cmd for more info";
         };
     }
@@ -42,6 +35,7 @@ public class CmdHandler {
         }
         return """
                 Usuage:
+                    define {dictionary} {word}
                     add {dictionary} {word}
                     remove {database} {word}
                     show db || show database
@@ -54,8 +48,6 @@ public class CmdHandler {
         if (strArgs.length != 1) {
             return "Only Quit";
         }
-        // database.stop();
-        // Dict.loop = false;
         l.loop = false;
         return "221 Closing Connection";
     }

@@ -14,44 +14,28 @@ import java.util.logging.Logger;
 import sixth.sem.database.Database;
 
 public class Dict {
-
+    private final String welcome_text = """
+            \n
+            #########################
+            #   Dictionary Server   #
+            #########################
+            by: Rahul Gurung & Rohan Chaudhary
+            """;
     private static Database database = null;
     public static boolean loop = true;
     public static final Logger logger = Logger.getLogger(Dict.class.getCanonicalName());
-
-    // public static final int threadpool_size =
-    // Runtime.getRuntime().availableProcessors() * 2;
-    /// private static ExecutorService executorService =
-    // Executors.newVirtualThreadPerTaskExecutor();
-    private static ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
-    private static ServerSocket serverSocket;
+    private static final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
     public Dict(int port, String dbaddress, String username, String password, String table) {
-        logger.info("""
-                \n
-                #########################
-                #   Dictionary Server   #
-                #########################
-                by: Rahul Gurung & Rohan Chaudhary
-                """);
-
         database = new Database(dbaddress, username, password, table);
+        logger.info(welcome_text);
+        logger.info("Dictionary Server Listening on Port:" + port);
 
-        logger.info("Dictionary Server Running on Port:" + port);
-        logger.info("Now Listening...");
-
-        try {
-            serverSocket = new ServerSocket(port);
-            serverSocket.setReuseAddress(false);
-
+        try (var serverSocket = new ServerSocket(port);) {
             while (loop) {
                 Socket sock = serverSocket.accept();
                 executorService.submit(() -> {
-                    try {
-                        handleSocket(sock);
-                    } catch (IOException e) {
-                        logger.log(Level.SEVERE, "Couldn't handle Socket " + e.getMessage(), e);
-                    }
+                    handleSocket(sock);
                 });
             }
         } catch (IOException e) {
@@ -61,66 +45,45 @@ public class Dict {
     }
 
     public static void terminate() {
-        try {
-            if (serverSocket != null) {
-                serverSocket.close();
-            }
-            database.stop();
-            logger.info("Exited Successfully");
-            System.exit(0);
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed at Terminate" + e.getMessage(), e);
-        }
+        database.stop();
+        logger.info("Exited Successfully");
+        System.exit(0);
     }
 
-    private void handleSocket(Socket sock) throws IOException {
-        Auth auth = new Auth();
-        Socket client = sock;
-        BufferedReader reader;
-        PrintWriter writer;
+    private void handleSocket(Socket sock) {
         String temp;
+        Socket client = sock;
+        Auth auth = new Auth();
         Again loop = new Again(true);
 
-        reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
-        writer = new PrintWriter(client.getOutputStream(), true);
+        try (var reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
+                var writer = new PrintWriter(client.getOutputStream(), true);) {
+            logger.info(client.getInetAddress() + " accepted as client");
+            writer.println(welcome_text);
 
-        writer.println("""
-                #########################
-                #   Dictionary Server   #
-                #########################
-                by: Rahul Gurung & Rohan Chaudhary
-                    """);
-        writer.flush();
+            while ((temp = reader.readLine()) != null) {
+                temp = temp.trim();
+                if (temp.isEmpty()) {
+                    continue;
+                }
+                var response = CmdHandler.handle(temp, database, loop, auth);
+                writer.println(response + "\r\n");
 
-        logger.info(client.getInetAddress() + " accepted as client");
-
-        while ((temp = reader.readLine()) != null) {
-            temp = temp.trim();
-            if (temp.isEmpty()) {
-                continue;
+                if (loop.loop == false) {
+                    logger.info("for " + client.getInetAddress() + " Again.loop is " + loop.loop);
+                    break;
+                }
             }
-            writer.println(CmdHandler.handle(temp, database, loop, auth));
-            writer.flush();
-
-            if (loop.loop == false) {
-                logger.info("for " + client.getInetAddress() + " Again.loop is " + loop.loop);
-                break;
+            if (client != null) {
+                client.close();
+                logger.info(client.getInetAddress() + " has been closed");
             }
-        }
-        if (reader != null)
-            reader.close();
-        if (writer != null)
-            writer.close();
-        if (client != null) {
-            client.close();
-            logger.info(client.getInetAddress() + " has been closed");
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "IOException encountered" + e.getMessage(), e);
         }
     }
 }
 
-/**
- * InnerDict
- */
 class Again {
     public boolean loop;
 
