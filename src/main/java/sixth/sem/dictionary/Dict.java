@@ -22,9 +22,10 @@ public class Dict {
             by: Rahul Gurung & Rohan Chaudhary
             """;
     private static Database database = null;
+    private static final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
+
     public static boolean loop = true;
     public static final Logger logger = Logger.getLogger(Dict.class.getCanonicalName());
-    private static final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
     public Dict(int port, String dbaddress, String username, String password, String table) {
         database = new Database(dbaddress, username, password, table);

@@ -149,6 +149,42 @@ public final class Database {
         return response;
     }
 
+    public Response match(String[] word) {
+        String temp = "";
+        Response response = new Response();
+        String sqlQuery = "SELECT * FROM " + name_of_table + " WHERE word REGEXP ";
+        switch (word[1]) {
+            case "prefix":
+                sqlQuery = sqlQuery + "\"^" + word[3] + "\"";
+                break;
+            case "suffix":
+                sqlQuery = sqlQuery + "\"" + word[3] + "$\"";
+                break;
+            case "exact":
+                sqlQuery = sqlQuery + word[3];
+                break;
+            default:
+                sqlQuery.concat(word[3]);
+                break;
+
+        }
+        try (var statement = connection.createStatement();) {
+            // use the preferred database
+            connection.createStatement().execute("use " + evaluateShortcut(word[2]));
+
+            ResultSet result = statement.executeQuery(sqlQuery);
+            while (result.next()) {
+                temp = temp.concat(result.getString("word") + " -> " + result.getString("value"));
+            }
+        } catch (SQLException e) {
+            temp = "Failed to perform the action";
+            Dict.logger.log(Level.WARNING, "couldn't perform action " + e.getMessage(), e);
+        }
+        response.responseCode = 200;
+        response.data = temp;
+        return response;
+    }
+
     public Response define2(String[] word) {
         String temp = "";
         Response response = new Response();
@@ -164,10 +200,10 @@ public final class Database {
                 int loops_to_help_know_if_resultset_is_empty = 0;
                 while (result.next()) {
                     ++loops_to_help_know_if_resultset_is_empty;
-                    temp = temp.concat(word[i] + " -> " + result.getString("value") + "\n");
+                    temp = temp.concat(word[i] + " -> " + result.getString("value"));
                 }
                 if (loops_to_help_know_if_resultset_is_empty == 0) {
-                    temp = temp.concat(word[i] + "-> " + "not in the Database\n");
+                    temp = temp.concat(word[i] + "-> " + "not in the Database");
                 }
             }
         } catch (SQLException e) {

@@ -6,6 +6,7 @@ import sixth.sem.database.Database;
 
 public class CmdHandler {
     private static String[] strArgs;
+    private static String[] forEnc;
     private static Database database;
     private static Auth authc;
 
@@ -15,6 +16,7 @@ public class CmdHandler {
     public static String handle(final String cmd, final Database db, final Again loop, final Auth auth) {
         authc = auth;
         database = db;
+        forEnc = cmd.split(" ");
         strArgs = cmd.toLowerCase().split(" ");
         return switch (strArgs[0]) {
             case "help" -> help.apply();
@@ -24,7 +26,8 @@ public class CmdHandler {
             case "remove" -> remove.apply();
             case "abort" -> abort.apply();
             case "show" -> show.apply();
-            case "auth" -> auth(strArgs, auth).data;
+            case "match" -> match.apply();
+            case "auth" -> auth(forEnc, auth).data;
             default -> "Wrong Cmd String , Use HELP cmd for more info";
         };
     }
@@ -35,12 +38,16 @@ public class CmdHandler {
         }
         return """
                 Usuage:
-                    define {dictionary} {word}
-                    add {dictionary} {word}
-                    remove {database} {word}
-                    show db || show database
-                    help
-                    quit
+                    DEFINE dictionary word      -- Look up words in the database
+                    MATCH strat dictionary word -- Look up words in the database
+                    SHOW strat                  -- List Stragety
+                    ADD dictionary word define  -- Add words to the database
+                    REMOVE database word        -- Remove words from the database
+                    SHOW db                     -- List all the available database
+                    SHOW database               -- List all the available database
+                    AUTH user password          -- Provide authentication information
+                    HELP                        -- Display the help information
+                    QUIT                        -- Terminate connection
                 """;
     };
 
@@ -49,15 +56,8 @@ public class CmdHandler {
             return "Only Quit";
         }
         l.loop = false;
-        return "221 Closing Connection";
+        return "Closing Connection";
     }
-
-    // private static Fn<String> define = () -> {
-    // if (strArgs.length == 0) {
-    // return "Not Enough Args";
-    // }
-    // return database.define(strArgs).data;
-    // };
 
     private static Fn<String> define2 = () -> {
         if (strArgs.length == 1) {
@@ -101,10 +101,24 @@ public class CmdHandler {
         if (strArgs.length == 1) {
             return "Wrong Command";
         }
-        if (strArgs[1].equals("db") || strArgs[1].equals("databases"))
+        if (strArgs[1].equals("db") || strArgs[1].equals("database"))
             return database.showDb(strArgs).data;
+        else if (strArgs[1].equals("stragety") || strArgs[1].equals("strat"))
+            return """
+                    3 Strageties present
+                     prefix "Match prefixes"
+                     suffix "Match suffixes"
+                     """;
+        // exact "Match words exactly"
         else
             return "Wrong Command";
+    };
+
+    private static Fn<String> match = () -> {
+        if (strArgs.length != 4)
+            return "Wrong Command";
+        else
+            return database.match(strArgs).data;
     };
 
     private static Response auth(String[] args, Auth auth) {
@@ -113,7 +127,9 @@ public class CmdHandler {
             response.data = "wrong statement";
             return response;
         }
-        if (args[1].equals(App.getUsername()) && args[2].equals(App.getPassword())) {
+
+        var String = Encrypt.decrypt(args[2]);
+        if (args[1].equals(App.getUsername()) && String.equals(App.getPassword())) {
             response.data = "Authenticated";
             auth.setAuth(true);
             return response;
